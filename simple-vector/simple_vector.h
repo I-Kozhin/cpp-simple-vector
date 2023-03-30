@@ -5,6 +5,7 @@
 #include "array_ptr.h"
 #include <algorithm>
 #include <stdexcept>
+#include <utility>
 
 
 class ReserveProxyObj {
@@ -41,28 +42,22 @@ public:
 
 
 	explicit SimpleVector(size_t size) :
-		array_ptr_(size) {
-		size_ = size;
-		capacity_ = size;
+		array_ptr_(size), size_(size), capacity_(size) { // инициализирую поля через список инициализации
 		std::generate(array_ptr_.Get(), array_ptr_.Get() + size_, [] { return Type(); });
 	}
 
 	// Создаёт вектор из size элементов, инициализированных значением value
 	SimpleVector(size_t size, const Type& value) :
-		array_ptr_(size) {
-		size_ = size;
-		capacity_ = size;
+		array_ptr_(size), size_(size), capacity_(size) { // инициализирую поля через список инициализации
 		for (size_t i = 0; i < size; i++) {
 			array_ptr_[i] = value;
 		}
 	}
 
 	// Создаёт вектор из std::initializer_list
-	SimpleVector(std::initializer_list<Type> init) : array_ptr_(init.size()) {
+	SimpleVector(std::initializer_list<Type> init) : // инициализирую поля через список инициализации
+        array_ptr_(init.size()), size_(init.size()), capacity_(init.size())  {
 		std::copy(init.begin(), init.end(), array_ptr_.Get());
-		size_ = init.size();
-		capacity_ = size_;
-
 	}
 
 	// Возвращает количество элементов в массиве
@@ -186,16 +181,15 @@ public:
 	}
 
 
-
-	SimpleVector& operator=(const SimpleVector& rhs) {
-		delete[] array_ptr_.Release();
-		/*pointer*/ ArrayPtr<Type> newptr(rhs.size_);
-		std::copy(rhs.begin(), rhs.end(), newptr.Get());
-		array_ptr_.swap(newptr);
-		size_ = rhs.size_;
-		capacity_ = size_;
-		return *this;
-	}
+    // исправлено
+    SimpleVector& operator=(const SimpleVector& rhs) {
+        if (this == &rhs) {  // проверка на самоприсваивание
+            return *this;
+        }
+        SimpleVector tmp(rhs.begin(), rhs.end());  // создание временного объекта
+        swap(tmp);  // свап с текущим объектом
+        return *this;
+    }
 
 	//Присваивание для rvalue 
 	SimpleVector& operator=(SimpleVector&& rhs) {
@@ -203,7 +197,7 @@ public:
 		/*pointer*/ ArrayPtr<Type> newptr(rhs.size_);
 		std::move(rhs.begin(), rhs.end(), newptr.Get());
 		array_ptr_.swap(newptr);
-		size_ = std::move(rhs.size_);
+		size_ = std::exchange(rhs.size_, 0); //move заменён на exchange
 		capacity_ = size_;
 		return *this;
 	}
@@ -312,8 +306,8 @@ public:
 	}
 
 	void PopBack() noexcept {
-        //Вектор не должен быть пустым
-		if (!IsEmpty()) --size_;
+        assert(IsEmpty()); // добавлена проверка
+		--size_;
 	}
 
 
