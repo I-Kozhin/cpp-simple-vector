@@ -45,7 +45,7 @@ public:
     ArrayPtr&& operator=(ArrayPtr&& other ) {
         // если адреса объектов не совпадают, то их указатели обмениваются
         if (raw_ptr_ != other.raw_ptr_) {
-        raw_ptr_.swap(other.raw_ptr_);
+        	raw_ptr_.swap(other.raw_ptr_);
         }
     };
     

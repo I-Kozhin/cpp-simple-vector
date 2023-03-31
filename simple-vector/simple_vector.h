@@ -181,15 +181,14 @@ public:
 	}
 
 
-    // исправлено
-    SimpleVector& operator=(const SimpleVector& rhs) {
-        if (this == &rhs) {  // проверка на самоприсваивание
-            return *this;
-        }
-        SimpleVector tmp(rhs.begin(), rhs.end());  // создание временного объекта
-        swap(tmp);  // свап с текущим объектом
-        return *this;
-    }
+	SimpleVector& operator=(const SimpleVector& rhs) {
+		if (this == &rhs) {  // проверка на самоприсваивание
+			return *this;
+		}
+		SimpleVector tmp(rhs);  // создание временного объекта
+		swap(tmp);  // свап с текущим объектом
+		return *this;
+	}
 
 	//Присваивание для rvalue 
 	SimpleVector& operator=(SimpleVector&& rhs) {
@@ -208,7 +207,7 @@ public:
 	void PushBack(const Type& item) {
 		if (IsEmpty()) {
 			if (!capacity_) {
-				Reserve(10);
+				Reserve(capacity_ * 2); // или Reserve(1)
 			}
 			array_ptr_[0] = item;
 			size_ = 1;
